@@ -16,6 +16,8 @@ from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.metrics.pairwise import rbf_kernel
 
+from src.utils.custom_encoder import CustomEncoder
+
 
 data_dir = Path("..", "data")
 
@@ -154,23 +156,14 @@ def map_sleep_duration_fn(df):
 map_sleep_duration = FunctionTransformer(
     map_sleep_duration_fn, feature_names_out="one-to-one")
 
-# TODO: convert this into class and tunable encoding parameter
-def make_sleep_duration_pipeline_fn(encoding="onehot"):
-    steps = [("default_cat_pipeline", default_cat_pipeline),
-             ("sleep_duration_clean", clean_sleep_duration),
-             ("sleep_duration_mapping", map_sleep_duration)]
 
-    if encoding == "onehot":
-        steps.append(("encoder", OneHotEncoder(
-            sparse_output=False, handle_unknown="ignore")))
-    elif encoding == "ordinal":
-        steps.append(("encoder", OrdinalEncoder(categories=[[
-            "lt_5", "bt_5_6", "bt_7_8", "gt_8"
-        ]], handle_unknown="use_encoded_value", unknown_value=-1)))
-    else:
-        raise ValueError("Invalid encoding type: choose 'onehot' or 'ordinal'")
-    return Pipeline(steps=steps)
-
+sleep_duration_pipeline = Pipeline([("default_cat_pipeline", default_cat_pipeline),
+                                    ("sleep_duration_clean", clean_sleep_duration),
+                                    ("sleep_duration_mapping", map_sleep_duration),
+                                    ("sleep_duration_encoding", CustomEncoder(categories=[[
+                                        "lt_5", "bt_5_6", "bt_7_8", "gt_8"
+                                    ]]))
+                                    ])
 # dietary habits pipeline
 
 
@@ -186,27 +179,13 @@ def map_dietary_habits_fn(df):
 map_dietary_habits = FunctionTransformer(
     map_dietary_habits_fn, feature_names_out="one-to-one")
 
-# TODO: convert this into class and tunable encoding parameter
 
-
-def make_dietary_habits_pipeline_fn(encoding='onehot'):
-    steps = [
-        ("default_cat_pipeline", default_cat_pipeline),
-        ("dietary_habits_mapping", map_dietary_habits)
-    ]
-
-    if encoding == "onehot":
-        steps.append(("encoder", OneHotEncoder(
-            sparse_output=False, handle_unknown="ignore")))
-    elif encoding == "ordinal":
-        steps.append(("encoder", OrdinalEncoder(categories=[[
-            "unhealthy", "moderate", "healthy"
-        ]], handle_unknown="use_encoded_value", unknown_value=-1)))
-    else:
-        raise ValueError("Invalid encoding type: choose 'onehot' or 'ordinal'")
-    return Pipeline(steps=steps)
-
-
+dietary_habits_pipeline = Pipeline([("default_cat_pipeline", default_cat_pipeline),
+                                    ("dietary_habits_mapping", map_dietary_habits),
+                                    ("dietary_habits_encoding", CustomEncoder(categories=[[
+                                        "unhealthy", "moderate", "healthy"
+                                    ]]))
+                                    ])
 # degree pipeline
 degree_mapping_dict = {
     "class 12":     {"field": "school",      "level": "high_school"},
@@ -306,48 +285,40 @@ map_degree = FunctionTransformer(
 # helper function to create a column transformer to encode degree_field and degree_level fields.
 
 
-def make_degree_encoder(encoding="onehot"):
-    degree_level_encoder = OneHotEncoder(
-        handle_unknown="ignore", sparse_output=False)
-
-    if encoding == "ordinal":
-        degree_level_encoder = OrdinalEncoder(categories=[[
-            "unknown", "high_school", "bachelor", "master", "doctorate"
-        ]], handle_unknown="use_encoded_value", unknown_value=-1)
-
-    return ColumnTransformer([
-        ("encode_degree_field", OneHotEncoder(
-            handle_unknown="ignore", sparse_output=False), ["degree_field"]),
-        ("encode_degree_level", degree_level_encoder, ["degree_level"])
-    ])
-
-
 # testing basic pipeline
 degree_pipeline = Pipeline([
     ("default_cat_pipeline", default_cat_pipeline),
     ("clean", clean_degree),
     ("mapping", map_degree),
-    ("encode_degree", make_degree_encoder())
+    ("encode_degree", ColumnTransformer([
+        ("encode_degree_field", OneHotEncoder(
+            handle_unknown="ignore", sparse_output=False), ["degree_field"]),
+        ("encode_degree_level", CustomEncoder(categories=[[
+            "unknown", "high_school", "bachelor", "master", "doctorate"
+        ]]), ["degree_level"])
+    ]))
 ])
 
-## suicidal thoughts pipeline
+# suicidal thoughts pipeline
 suicidal_thoughts_pipeline = Pipeline([
     ("default_cat_pipeline", default_cat_pipeline),
     ("suididal_thoughts_encoding", OneHotEncoder(
         handle_unknown="ignore", sparse_output=False))
 ])
 
-## family history pipeline
+# family history pipeline
 family_history_pipeline = Pipeline([
     ("default_cat_pipeline", default_cat_pipeline),
     ("family_history_encoding", OneHotEncoder(
         handle_unknown="ignore", sparse_output=False))
 ])
 
-## city pipeline
-master_city_list = pd.read_csv(Path(data_dir,"detailed_in.csv"))
+# city pipeline
+master_city_list = pd.read_csv(Path(data_dir, "detailed_in.csv"))
 
 # helper function to clean up city column and remove special characters
+
+
 def clean_city_fn(df):
     if not isinstance(df, pd.DataFrame):
         raise ValueError(
@@ -356,25 +327,33 @@ def clean_city_fn(df):
     df_copy["city"] = df_copy["city"].str.strip("'")
     return df_copy
 
+
 clean_city = FunctionTransformer(clean_city_fn, feature_names_out="one-to-one")
 
-## helper function to rename old city names to new ones
+# helper function to rename old city names to new ones
+
+
 def rename_city_fn(df):
     if not isinstance(df, pd.DataFrame):
         raise ValueError(
             "degree_clean_fn : Input must be a pandas DataFrame")
     df_copy = df.copy()
-    df_copy.loc[df_copy["city"] == "vasai-virar","city"] = "virar"
-    df_copy.loc[df_copy["city"] == "bangalore","city"] = "bengaluru"
+    df_copy.loc[df_copy["city"] == "vasai-virar", "city"] = "virar"
+    df_copy.loc[df_copy["city"] == "bangalore", "city"] = "bengaluru"
     return df_copy
 
-rename_city = FunctionTransformer(rename_city_fn, feature_names_out="one-to-one")
+
+rename_city = FunctionTransformer(
+    rename_city_fn, feature_names_out="one-to-one")
 
 # helper function that maps city names to default values of is_valid_city = 0, lat/long of Nagpur
+
+
 def map_city_feature_names(function_transformer, feature_names_in):
     features_out = feature_names_in.tolist()
-    features_out.extend(["is_valid_city","lat", "long"])
+    features_out.extend(["is_valid_city", "lat", "long"])
     return features_out
+
 
 def map_city_fn(df):
     if not isinstance(df, pd.DataFrame):
@@ -386,18 +365,22 @@ def map_city_fn(df):
     df_copy["long"] = 79.041124
     return df_copy
 
-map_city = FunctionTransformer(map_city_fn, feature_names_out=map_city_feature_names)
+
+map_city = FunctionTransformer(
+    map_city_fn, feature_names_out=map_city_feature_names)
 
 # helper function that compares and verifies the city name and if its a valid city then updates the lat/long value
+
+
 def map_city_data(city_name):
-    ## search for city name in master city lsit
+    # search for city name in master city lsit
     city_data = master_city_list.loc[master_city_list["name"] == city_name]
-    ## if city exists then return valid info
+    # if city exists then return valid info
     if city_data.shape[0] > 0:
-        return (1, city_data["lat"].values[0],city_data["long"].values[0])
-    ## if city doesn't exist the mark it as invalid and return default info
-    return 0,21.122615,79.041124
-    
+        return (1, city_data["lat"].values[0], city_data["long"].values[0])
+    # if city doesn't exist the mark it as invalid and return default info
+    return 0, 21.122615, 79.041124
+
 
 def verify_city_fn(df):
     if not isinstance(df, pd.DataFrame):
@@ -406,15 +389,18 @@ def verify_city_fn(df):
     df_copy = df.copy()
     unique_cities = df_copy["city"].unique()
     for unique_city in unique_cities:
-        is_valid_city,lat,long = map_city_data(unique_city)
-        df_copy.loc[df_copy["city"] == unique_city, "is_valid_city"] = is_valid_city
+        is_valid_city, lat, long = map_city_data(unique_city)
+        df_copy.loc[df_copy["city"] == unique_city,
+                    "is_valid_city"] = is_valid_city
         df_copy.loc[df_copy["city"] == unique_city, "lat"] = lat
         df_copy.loc[df_copy["city"] == unique_city, "long"] = long
     return df_copy
 
-verify_city = FunctionTransformer(verify_city_fn, feature_names_out="one-to-one")
 
-## city depression ratio
+verify_city = FunctionTransformer(
+    verify_city_fn, feature_names_out="one-to-one")
+
+# city depression ratio
 """
 For this transformer we'll assume that we'll get clean city names
 """
@@ -431,10 +417,10 @@ class MapCityDepressionRatio(BaseEstimator, TransformerMixin):
     """
 
     def fit(self, X, y=None):
-        ## calculate the city depression ratios
+        # calculate the city depression ratios
         combined_data = pd.concat([X, y], axis=1)
-        ## only  calculate the depression ratios for valid cities.
-        combined_aggregation = combined_data.loc[combined_data["is_valid_city"] == 1].groupby(["lat","long","city"], as_index=False).agg(
+        # only  calculate the depression ratios for valid cities.
+        combined_aggregation = combined_data.loc[combined_data["is_valid_city"] == 1].groupby(["lat", "long", "city"], as_index=False).agg(
             # temp workaround to avoid using `city` column.
             total_instances=("city", "count"),
             # ideally we should drop this column in previous step of the pipeline.
@@ -444,13 +430,14 @@ class MapCityDepressionRatio(BaseEstimator, TransformerMixin):
             combined_aggregation["total_depression_count"]
         combined_aggregation["depression_ratio"] = combined_aggregation["total_depression_count"] / \
             combined_aggregation["total_instances"]
-        ## set the mapping to use it during transformation
+        # set the mapping to use it during transformation
         self.city_depression_ratio_map = combined_aggregation.set_index("city")[
             "depression_ratio"]
-        
-        ## save the median value to imputing
-        ## TODO: set it as parameter for future experimentation
-        self.city_depression_ratio_median = combined_aggregation["depression_ratio"].median()
+
+        # save the median value to imputing
+        # TODO: set it as parameter for future experimentation
+        self.city_depression_ratio_median = combined_aggregation["depression_ratio"].median(
+        )
         return self
 
     """
@@ -459,32 +446,38 @@ class MapCityDepressionRatio(BaseEstimator, TransformerMixin):
         lat = default it to nagpur lat
         long = default it to nagpur long
         city_depression_ratio
-        
-        After the values are set, fill in the values with median for now.         
+
+        After the values are set, fill in the values with median for now.
     """
 
     def transform(self, X, y=None):
         X_copy = X.copy()
         X_copy["city_depression_ratio"] = np.nan
-        X_copy["city_depression_ratio"] = X_copy["city"].map(self.city_depression_ratio_map)
-        ## fill the city depression ration missing values with median
-        X_copy["city_depression_ratio"] = X_copy["city_depression_ratio"].fillna(self.city_depression_ratio_median)
-        ## drop city column from X_copy
-        X_copy = X_copy.drop(columns=['city'], errors='ignore') # errors='ignore' is useful
+        X_copy["city_depression_ratio"] = X_copy["city"].map(
+            self.city_depression_ratio_map)
+        # fill the city depression ration missing values with median
+        X_copy["city_depression_ratio"] = X_copy["city_depression_ratio"].fillna(
+            self.city_depression_ratio_median)
+        # drop city column from X_copy
+        # errors='ignore' is useful
+        X_copy = X_copy.drop(columns=['city'], errors='ignore')
         return pd.DataFrame(X_copy)
 
     def get_feature_names_out(self, input_features=None):
-        ## find index of city from input feature list
-        city_val_index = np.where(input_features=="city")[0][0]
-        ## drop the value at the index
+        # find index of city from input feature list
+        city_val_index = np.where(input_features == "city")[0][0]
+        # drop the value at the index
         required_features = np.delete(input_features, city_val_index)
-        output_features = np.append(required_features, self.output_colums) #list(input_features).extend(self.output_colums)
+        # list(input_features).extend(self.output_colums)
+        output_features = np.append(required_features, self.output_colums)
         return output_features
 
 
 map_city_depression_ratio = MapCityDepressionRatio()
 
-## cluster similarity
+# cluster similarity
+
+
 class ClusterSimilarityTransformer(BaseEstimator, TransformerMixin):
     def __init__(self, n_clusters=5, gamma=1.0, random_state=None):
         self.n_clusters = n_clusters
@@ -515,7 +508,7 @@ class ClusterSimilarityTransformer(BaseEstimator, TransformerMixin):
         X_lat_long = X_copy.loc[:, ["lat", "long"]]
         similarity_values = rbf_kernel(
             X_lat_long, self.kmeans_.cluster_centers_, gamma=self.gamma)
-                
+
         similarity_df = pd.concat(
             [X_copy, pd.DataFrame(similarity_values)], axis=1)
         return similarity_df
@@ -540,10 +533,11 @@ class ClusterSimilarityTransformer(BaseEstimator, TransformerMixin):
 
 cluster_similarity = ClusterSimilarityTransformer()
 
+
 class ConditionalDropper(BaseEstimator, TransformerMixin):
     def __init__(self, columns_to_drop=None, active=True):
-        self.columns_to_drop = columns_to_drop # columns to drop
-        self.active = active # flag to make this dropper active/inactive
+        self.columns_to_drop = columns_to_drop  # columns to drop
+        self.active = active  # flag to make this dropper active/inactive
 
     def fit(self, X, y=None):
         return self
@@ -552,7 +546,8 @@ class ConditionalDropper(BaseEstimator, TransformerMixin):
         X_copy = X.copy()
         if self.active and self.columns_to_drop:
             # Ensure columns exist before trying to drop
-            cols_to_drop_present = [col for col in self.columns_to_drop if col in X_copy.columns]
+            cols_to_drop_present = [
+                col for col in self.columns_to_drop if col in X_copy.columns]
             if cols_to_drop_present:
                 return X_copy.drop(columns=cols_to_drop_present)
         return X_copy
@@ -561,18 +556,18 @@ class ConditionalDropper(BaseEstimator, TransformerMixin):
         if self.active and self.columns_to_drop:
             return [f for f in input_features if f not in self.columns_to_drop]
         return input_features
-    
-## by default this is active
-dropper_pipeline = ConditionalDropper(columns_to_drop=["lat","long"])
+
+
+# by default this is active
+dropper_pipeline = ConditionalDropper(columns_to_drop=["lat", "long"])
 
 city_pipeline = Pipeline([
-                        ("default_cat_pipeline", default_cat_pipeline),
-                        ("city_clean", clean_city),
-                        ("rename_city", rename_city),
-                        ("city_mapping", map_city),
-                        ("city_verification", verify_city),
-                        ("city_depression_ratio", map_city_depression_ratio),
-                        ("city_cluster_similarity", cluster_similarity),
-                        ("drop_lat_long", dropper_pipeline)
+    ("default_cat_pipeline", default_cat_pipeline),
+    ("city_clean", clean_city),
+    ("rename_city", rename_city),
+    ("city_mapping", map_city),
+    ("city_verification", verify_city),
+    ("city_depression_ratio", map_city_depression_ratio),
+    ("city_cluster_similarity", cluster_similarity),
+    ("drop_lat_long", dropper_pipeline)
 ])
-
