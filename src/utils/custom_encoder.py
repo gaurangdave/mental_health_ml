@@ -10,7 +10,6 @@ class CustomEncoder(BaseEstimator, TransformerMixin):
         self.categories = categories
 
     def fit(self, X, y=None):
-        print(X)
         X_checked = check_array(X, dtype=["object", np.float64, np.int64])
 
         if isinstance(X, pd.DataFrame):
