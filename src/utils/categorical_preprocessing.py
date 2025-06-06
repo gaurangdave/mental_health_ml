@@ -483,6 +483,8 @@ class ClusterSimilarityTransformer(BaseEstimator, TransformerMixin):
         self.n_clusters = n_clusters
         self.gamma = gamma
         self.random_state = random_state
+        self.similarity_columns = [
+            f"similarity_to_cluster_{i}" for i in range(self.n_clusters)]
 
     def fit(self, X, y=None, sample_weight=None):
         X_copy = X.copy()
@@ -509,8 +511,11 @@ class ClusterSimilarityTransformer(BaseEstimator, TransformerMixin):
         similarity_values = rbf_kernel(
             X_lat_long, self.kmeans_.cluster_centers_, gamma=self.gamma)
 
+        similarity_values_df = pd.DataFrame(
+            similarity_values, columns=self.similarity_columns, index=X_copy.index)
+
         similarity_df = pd.concat(
-            [X_copy, pd.DataFrame(similarity_values)], axis=1)
+            [X_copy, similarity_values_df], axis=1)
         return similarity_df
 
     def get_feature_names_out(self, input_features=None):
@@ -523,11 +528,9 @@ class ClusterSimilarityTransformer(BaseEstimator, TransformerMixin):
             # Fallback to names captured during fit
             actual_input_column_names = list(self.feature_names_in_)
 
-        similarity_columns = [
-            f"similarity_to_cluster_{i}" for i in range(self.n_clusters)]
         # list(input_features).extend(self.output_colums)
         output_features = np.append(
-            actual_input_column_names, similarity_columns)
+            actual_input_column_names, self.similarity_columns)
         return output_features
 
 
@@ -559,7 +562,7 @@ class ConditionalDropper(BaseEstimator, TransformerMixin):
 
 
 # by default this is active
-dropper_pipeline = ConditionalDropper(columns_to_drop=["lat", "long"])
+dropper_pipeline = ConditionalDropper(columns_to_drop=["city", "lat", "long"])
 
 city_pipeline = Pipeline([
     ("default_cat_pipeline", default_cat_pipeline),
