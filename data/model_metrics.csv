@@ -1,0 +1,2 @@
+model,version,recall,precision,f1,file
+Logistic Regression,default,0.885598408325681,0.8567838596857479,0.8709314383596732,N/A
