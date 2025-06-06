@@ -28,11 +28,11 @@ class CustomEncoder(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X, y=None):
-        X_checked = check_array(X, dtype=["object", np.float64, np.int64
-                                          ])
         check_is_fitted(self, ['encoder_'])
+        X_checked = check_array(X, dtype=["object", np.float64, np.int64])        
         transformed_data = self.encoder_.transform(X_checked)
         return transformed_data
 
     def get_feature_names_out(self, input_features=None):
+        check_is_fitted(self, ['encoder_'])
         return self.encoder_.get_feature_names_out(input_features=input_features)

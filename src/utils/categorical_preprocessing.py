@@ -419,7 +419,7 @@ class MapCityDepressionRatio(BaseEstimator, TransformerMixin):
     def fit(self, X, y=None):
         y_df = y
         if not isinstance(y, pd.DataFrame):
-            y_df = pd.DataFrame(y,columns=["depression"])
+            y_df = pd.DataFrame(y, columns=["depression"])
         # calculate the city depression ratios
         combined_data = pd.concat([X, y_df], axis=1)
         # only  calculate the depression ratios for valid cities.
@@ -507,8 +507,9 @@ class ClusterSimilarityTransformer(BaseEstimator, TransformerMixin):
         return self  # always return self!
 
     def transform(self, X):
-        X_copy = X.copy()
         check_is_fitted(self, ['kmeans_'])
+
+        X_copy = X.copy()
         # only find similarity based on lat and long
         X_lat_long = X_copy.loc[:, ["lat", "long"]]
         similarity_values = rbf_kernel(
@@ -522,7 +523,7 @@ class ClusterSimilarityTransformer(BaseEstimator, TransformerMixin):
         return similarity_df
 
     def get_feature_names_out(self, input_features=None):
-        check_is_fitted(self)  # Good to ensure fit has been called
+        check_is_fitted(self, ['kmeans_', 'feature_names_in_'])
         actual_input_column_names = []
         if input_features is not None:
             # If input_features are provided by the caller, use them
@@ -546,21 +547,26 @@ class ConditionalDropper(BaseEstimator, TransformerMixin):
         self.active = active  # flag to make this dropper active/inactive
 
     def fit(self, X, y=None):
+        X_copy = X.copy()
+        self.cols_to_drop_present_ = [
+            col for col in self.columns_to_drop if col in X_copy.columns]
         return self
 
     def transform(self, X):
+        check_is_fitted(self, ["cols_to_drop_present_"])
         X_copy = X.copy()
         if self.active and self.columns_to_drop:
             # Ensure columns exist before trying to drop
-            cols_to_drop_present = [
-                col for col in self.columns_to_drop if col in X_copy.columns]
-            if cols_to_drop_present:
-                return X_copy.drop(columns=cols_to_drop_present)
+            # cols_to_drop_present = [
+            #     col for col in self.columns_to_drop if col in X_copy.columns]
+            if self.cols_to_drop_present_:
+                return X_copy.drop(columns=self.cols_to_drop_present_)
         return X_copy
 
     def get_feature_names_out(self, input_features=None):
-        if self.active and self.columns_to_drop:
-            return [f for f in input_features if f not in self.columns_to_drop]
+        check_is_fitted(self, ["cols_to_drop_present_"])
+        if self.active and self.columns_to_drop_present_:
+            return [f for f in input_features if f not in self.columns_to_drop_present_]
         return input_features
 
 
