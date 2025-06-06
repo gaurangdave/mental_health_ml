@@ -417,8 +417,11 @@ class MapCityDepressionRatio(BaseEstimator, TransformerMixin):
     """
 
     def fit(self, X, y=None):
+        y_df = y
+        if not isinstance(y, pd.DataFrame):
+            y_df = pd.DataFrame(y,columns=["depression"])
         # calculate the city depression ratios
-        combined_data = pd.concat([X, y], axis=1)
+        combined_data = pd.concat([X, y_df], axis=1)
         # only  calculate the depression ratios for valid cities.
         combined_aggregation = combined_data.loc[combined_data["is_valid_city"] == 1].groupby(["lat", "long", "city"], as_index=False).agg(
             # temp workaround to avoid using `city` column.
