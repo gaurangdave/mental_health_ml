@@ -49,8 +49,8 @@ map_age_bins = FunctionTransformer(
 age_pipeline = Pipeline(
     [("default_num_pipeline", default_num_pipeline),
      ("map_age_bins", map_age_bins),
-     ("encode_age", ColumnTransformer(
-         [("encode_age_range", CustomEncoder(categories=[[
+     ("age_encoding", ColumnTransformer(
+         [("age_range_encoding", CustomEncoder(categories=[[
              "18_to_23", "23_to_28", "28_to_33", "gte_33"
          ]]), ["age_range"])]
      ))
@@ -87,8 +87,8 @@ cgpa_pipeline = Pipeline(
     [("default_num_pipeline", default_num_pipeline),
      ("map_cgpa_bins", map_cgpa_bins),
 
-     ("encode_cgpa", ColumnTransformer(
-         [("encode_cgpa_range", CustomEncoder(categories=[[
+     ("cgpa_encoding", ColumnTransformer(
+         [("cgpa_range_encoding", CustomEncoder(categories=[[
              "lt_4", "4_to_7", "gte_7"
          ]]), ["cgpa_range"])]
      ))]
@@ -124,8 +124,8 @@ map_hours_bins = FunctionTransformer(
 hours_pipeline = Pipeline(
     [("default_num_pipeline", default_num_pipeline),
      ("map_hours_bins", map_hours_bins),
-     ("encode_hours", ColumnTransformer(
-         [("encode_hours_range", CustomEncoder(categories=[[
+     ("hours_encoding", ColumnTransformer(
+         [("hours_range_encoding", CustomEncoder(categories=[[
              "lt_4", "4_to_8", "gte_8"
          ]]), ["hours_range"])]
      ))]

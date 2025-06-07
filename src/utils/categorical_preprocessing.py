@@ -290,10 +290,10 @@ degree_pipeline = Pipeline([
     ("default_cat_pipeline", default_cat_pipeline),
     ("clean", clean_degree),
     ("mapping", map_degree),
-    ("encode_degree", ColumnTransformer([
-        ("encode_degree_field", OneHotEncoder(
+    ("degree_encoding", ColumnTransformer([
+        ("degree_field_encoding", OneHotEncoder(
             handle_unknown="ignore", sparse_output=False), ["degree_field"]),
-        ("encode_degree_level", CustomEncoder(categories=[[
+        ("degree_level_encoding", CustomEncoder(categories=[[
             "unknown", "high_school", "bachelor", "master", "doctorate"
         ]]), ["degree_level"])
     ]))
