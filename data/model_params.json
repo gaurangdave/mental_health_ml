@@ -1,1 +1,93 @@
-[{"name": "LogisticRegression", "version": "v1", "params": {"prediction__C": 1, "prediction__penalty": "l1", "prediction__solver": "liblinear"}}, {"name": "LogisticRegression", "version": "v2", "params": {"prediction__C": 1, "prediction__penalty": "l2", "prediction__solver": "saga", "preprocessing__age_pipeline__age_encoding__age_range_encoding__encoding": "ordinal", "preprocessing__cgpa_pipeline__cgpa_encoding__cgpa_range_encoding__encoding": "ordinal", "preprocessing__degree_pipeline__degree_encoding__degree_level_encoding__encoding": "ordinal", "preprocessing__dietary_habits_pipeline__dietary_habits_encoding__encoding": "ordinal", "preprocessing__hours_pipeline__hours_encoding__hours_range_encoding__encoding": "onehot", "preprocessing__sleep_duration_pipeline__sleep_duration_encoding__encoding": "ordinal"}}, {"name": "LinearSVC", "version": "v1", "params": {"prediction__C": 10, "prediction__penalty": "l1"}}, {"name": "LinearSVC", "version": "v2", "params": {"prediction__C": 0.1, "prediction__penalty": "l1", "preprocessing__age_pipeline__age_encoding__age_range_encoding__encoding": "ordinal", "preprocessing__cgpa_pipeline__cgpa_encoding__cgpa_range_encoding__encoding": "ordinal", "preprocessing__degree_pipeline__degree_encoding__degree_level_encoding__encoding": "ordinal", "preprocessing__dietary_habits_pipeline__dietary_habits_encoding__encoding": "ordinal", "preprocessing__hours_pipeline__hours_encoding__hours_range_encoding__encoding": "onehot", "preprocessing__sleep_duration_pipeline__sleep_duration_encoding__encoding": "onehot"}}]
+[
+  {
+    "name": "LogisticRegression",
+    "version": "v1",
+    "params": {
+      "prediction__C": 1,
+      "prediction__penalty": "l1",
+      "prediction__solver": "liblinear"
+    }
+  },
+  {
+    "name": "LogisticRegression",
+    "version": "v2",
+    "params": {
+      "prediction__C": 1,
+      "prediction__penalty": "l2",
+      "prediction__solver": "saga",
+      "preprocessing__age_pipeline__age_encoding__age_range_encoding__encoding": "ordinal",
+      "preprocessing__cgpa_pipeline__cgpa_encoding__cgpa_range_encoding__encoding": "ordinal",
+      "preprocessing__degree_pipeline__degree_encoding__degree_level_encoding__encoding": "ordinal",
+      "preprocessing__dietary_habits_pipeline__dietary_habits_encoding__encoding": "ordinal",
+      "preprocessing__hours_pipeline__hours_encoding__hours_range_encoding__encoding": "onehot",
+      "preprocessing__sleep_duration_pipeline__sleep_duration_encoding__encoding": "ordinal"
+    }
+  },
+  {
+    "name": "LinearSVC",
+    "version": "v1",
+    "params": { "prediction__C": 10, "prediction__penalty": "l1" }
+  },
+  {
+    "name": "LinearSVC",
+    "version": "v2",
+    "params": {
+      "prediction__C": 0.1,
+      "prediction__penalty": "l1",
+      "preprocessing__age_pipeline__age_encoding__age_range_encoding__encoding": "ordinal",
+      "preprocessing__cgpa_pipeline__cgpa_encoding__cgpa_range_encoding__encoding": "ordinal",
+      "preprocessing__degree_pipeline__degree_encoding__degree_level_encoding__encoding": "ordinal",
+      "preprocessing__dietary_habits_pipeline__dietary_habits_encoding__encoding": "ordinal",
+      "preprocessing__hours_pipeline__hours_encoding__hours_range_encoding__encoding": "onehot",
+      "preprocessing__sleep_duration_pipeline__sleep_duration_encoding__encoding": "onehot"
+    }
+  },
+  {
+    "name": "RandomForest",
+    "version": "v1",
+    "params": {
+      "prediction__criterion": "entropy",
+      "prediction__max_features": "sqrt",
+      "prediction__n_estimators": 250
+    }
+  },
+  {
+    "name": "RandomForest",
+    "version": "v1",
+    "params": {
+      "prediction__criterion": "log_loss",
+      "prediction__max_features": "sqrt",
+      "prediction__n_estimators": 400
+    }
+  },
+  {
+    "name": "RandomForest",
+    "version": "v2",
+    "params": {
+      "prediction__criterion": "gini",
+      "prediction__max_features": "sqrt",
+      "prediction__n_estimators": 400,
+      "preprocessing__age_pipeline__age_encoding__age_range_encoding__encoding": "onehot",
+      "preprocessing__cgpa_pipeline__cgpa_encoding__cgpa_range_encoding__encoding": "ordinal",
+      "preprocessing__degree_pipeline__degree_encoding__degree_level_encoding__encoding": "ordinal",
+      "preprocessing__dietary_habits_pipeline__dietary_habits_encoding__encoding": "ordinal",
+      "preprocessing__hours_pipeline__hours_encoding__hours_range_encoding__encoding": "ordinal",
+      "preprocessing__sleep_duration_pipeline__sleep_duration_encoding__encoding": "onehot"
+    }
+  },
+  {
+    "name": "RandomForest",
+    "version": "v2",
+    "params": {
+      "prediction__criterion": "gini",
+      "prediction__max_features": "sqrt",
+      "prediction__n_estimators": 400,
+      "preprocessing__age_pipeline__age_encoding__age_range_encoding__encoding": "onehot",
+      "preprocessing__cgpa_pipeline__cgpa_encoding__cgpa_range_encoding__encoding": "ordinal",
+      "preprocessing__degree_pipeline__degree_encoding__degree_level_encoding__encoding": "ordinal",
+      "preprocessing__dietary_habits_pipeline__dietary_habits_encoding__encoding": "ordinal",
+      "preprocessing__hours_pipeline__hours_encoding__hours_range_encoding__encoding": "ordinal",
+      "preprocessing__sleep_duration_pipeline__sleep_duration_encoding__encoding": "onehot"
+    }
+  }
+]

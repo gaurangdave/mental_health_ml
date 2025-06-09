@@ -565,8 +565,8 @@ class ConditionalDropper(BaseEstimator, TransformerMixin):
 
     def get_feature_names_out(self, input_features=None):
         check_is_fitted(self, ["cols_to_drop_present_"])
-        if self.active and self.columns_to_drop_present_:
-            return [f for f in input_features if f not in self.columns_to_drop_present_]
+        if self.active and self.cols_to_drop_present_:
+            return [f for f in input_features if f not in self.cols_to_drop_present_]
         return input_features
 
 
