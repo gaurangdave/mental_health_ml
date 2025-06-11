@@ -11,6 +11,30 @@ root_dir = Path(util_dir, "..", "..")
 models_dir = Path(root_dir, "models/")
 data_dir = Path(root_dir, "data/")
 
+def update_test_data_metrics(model_name, recall, precision, f1):
+    # create models directory
+    os.makedirs(data_dir, exist_ok=True)
+    # metrics file
+    file_path = data_dir / "test_data_metrics.csv"
+
+    # create new row for metrics
+    new_row = {
+        "model": model_name,
+        "recall": recall,
+        "precision": precision,
+        "f1": f1
+    }
+    metrics_data = pd.DataFrame([new_row])
+
+    # read existing data from file if it exists
+    if os.path.exists(file_path):
+        data = pd.read_csv(file_path)
+        # append to metrics data
+        metrics_data = pd.concat([data, metrics_data], ignore_index=True)
+
+    metrics_data.to_csv(file_path, index=False)
+    return metrics_data
+
 
 def update_models_metrics(model_name, version, recall, precision, f1, file_name="N/A"):
     # create models directory
